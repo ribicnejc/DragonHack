@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/main_gradient"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:fontFamily="sans-serif-thin"
+        android:text="@string/register"
+        android:textAlignment="center"
+        android:textColor="@color/loginTextColor"
+        android:textSize="50sp" />
+
+
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/input_layout_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/loginTextColor"
+        android:textColorHint="@color/colorAccent">
+
+        <EditText
+            android:id="@+id/edit_text_register_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:fontFamily="sans-serif-light"
+            android:hint="@string/name"
+            android:textColor="@color/loginTextColor"
+            android:textColorHint="@color/colorPrimary" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/input_layout_surname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/loginTextColor"
+        android:textColorHint="@color/colorAccent">
+
+        <EditText
+            android:id="@+id/edit_text_register_surname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:fontFamily="sans-serif-light"
+            android:hint="@string/surname"
+            android:textColor="@color/loginTextColor"
+            android:textColorHint="@color/colorPrimary" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/input_layout_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/loginTextColor"
+        android:textColorHint="@color/colorAccent">
+
+        <EditText
+            android:id="@+id/edit_text_register_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:fontFamily="sans-serif-light"
+            android:hint="@string/email_address"
+            android:textColor="@color/loginTextColor"
+            android:textColorHint="@color/colorPrimary"
+            android:inputType="textEmailAddress" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/input_layout_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/loginTextColor"
+        android:textColorHint="@color/colorAccent">
+
+        <EditText
+            android:id="@+id/edit_text_register_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            android:textColor="@color/loginTextColor" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="50dp"
+        android:fontFamily="sans-serif-light"
+        android:background="@drawable/button_default"
+        android:onClick="registerMe"
+        android:text="@string/register"
+        android:textColor="@android:color/white" />
+
+
+</LinearLayout>

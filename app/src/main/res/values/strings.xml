@@ -6,4 +6,18 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="nav_list">List</string>
+    <string name="nav_food">Food</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_orders">Orders</string>
+    <string name="nav_title_session">Session</string>
+    <string name="nav_logout">Logout</string>
+    <string name="welcome">Welcome</string>
+    <string name="lorem_ipsum">It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.</string>
+    <string name="email_address">Email Address</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="name">Name</string>
+    <string name="surname">Surname</string>
 </resources>
