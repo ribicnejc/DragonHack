@@ -5,13 +5,30 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.android.volley.Request.Method;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.ribic.nejc.dragonhack.R;
+import com.ribic.nejc.dragonhack.utils.NetworkUtils;
+
+import org.json.JSONObject;
+
 
 public class LoginActivity extends AppCompatActivity {
 
+    public static final String EXTRA_LOGIN_EMAIL = "com.nejc.ribic.login_email";
+    public static final String EXTRA_LOGIN_NAME = "com.nejc.ribic.login_name";
+
+
     EditText mEditTextLoginEmail;
     EditText mEditTextLoginPassword;
+    ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,30 +37,51 @@ public class LoginActivity extends AppCompatActivity {
 
         mEditTextLoginEmail = (EditText) findViewById(R.id.edit_text_login_email);
         mEditTextLoginPassword = (EditText) findViewById(R.id.edit_text_login_password);
-
-        //TODO check for prefs if password exists
-
-
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_login);
     }
 
     public void loginMe(View view) {
+        mProgressBar.setVisibility(View.VISIBLE);
         String email = mEditTextLoginEmail.getText().toString();
         String password = mEditTextLoginPassword.getText().toString();
-        boolean legit = true;
-        if (email.isEmpty()) {
-            mEditTextLoginEmail.setError("Check your email");
-            legit = false;
-        }
-        if (password.isEmpty()) {
-            mEditTextLoginPassword.setError("Insert your password");
-            legit = false;
-        }
-        if (!legit) return;
+        RequestQueue mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+        String url = NetworkUtils.loginUser(email, password);
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Method.GET,
+                url, null,
+                new Response.Listener<JSONObject>() {
 
-        //TODO fetch data if legit
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        String name = "";
+                        String email = "";
 
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+                        try{
+                            name = response.getString("name");
+                            email = response.getString("email");
+
+                        } catch (Exception e){
+                            Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        intent.putExtra(EXTRA_LOGIN_NAME, name);
+                        intent.putExtra(EXTRA_LOGIN_EMAIL, email);
+                        startActivity(intent);
+                        Toast.makeText(LoginActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
+                        mProgressBar.setVisibility(View.INVISIBLE);
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                mProgressBar.setVisibility(View.INVISIBLE);
+                Toast.makeText(LoginActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        mRequestQueue.add(jsonObjReq);
     }
 
+    public void registerMe(View view) {
+        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+        startActivity(intent);
+    }
 }

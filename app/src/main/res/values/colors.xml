@@ -5,6 +5,9 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorTransparent">#00ffffff</color>
     <color name="colorPrimaryLight">#A0D3E6</color>
+    <color name="colorBlack">#000</color>
+    <color name="colorFavorites">#FF5722</color>
+    <color name="colorGray">#777777</color>
 
     <!-- Gradient colors -->
     <color name="colorBlueLight">#75d8ef</color>
