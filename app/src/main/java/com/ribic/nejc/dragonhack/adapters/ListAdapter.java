@@ -31,8 +31,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListAdapterVie
     public void onBindViewHolder(ListAdapterViewHolder holder, int position) {
         holder.mTextViewName.setText(mItems.get(position).name);
         holder.mTextViewPrice.setText(mItems.get(position).price);
-        //TODO check if is hearted or not
-//        holder.mImageViewHeart.set
+
     }
 
     @Override

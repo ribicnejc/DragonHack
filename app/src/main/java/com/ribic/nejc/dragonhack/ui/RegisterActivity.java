@@ -19,6 +19,10 @@ import com.ribic.nejc.dragonhack.utils.NetworkUtils;
 
 import org.json.JSONObject;
 
+import static com.ribic.nejc.dragonhack.ui.LoginActivity.EXTRA_LOGIN_EMAIL;
+import static com.ribic.nejc.dragonhack.ui.LoginActivity.EXTRA_LOGIN_ID;
+import static com.ribic.nejc.dragonhack.ui.LoginActivity.EXTRA_LOGIN_NAME;
+
 public class RegisterActivity extends AppCompatActivity {
     EditText mEditTextRegisterName;
     EditText mEditTextRegisterSurname;
@@ -51,9 +55,23 @@ public class RegisterActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(JSONObject response) {
+                        String name = "";
+                        String email = "";
+                        String id = "";
+                        try{
+                            name = response.getString("name");
+                            email = response.getString("email");
+                            id = response.getInt("id") + "";
+                        } catch (Exception e){
+                            Toast.makeText(RegisterActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                         Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                        intent.putExtra(EXTRA_LOGIN_NAME, name);
+                        intent.putExtra(EXTRA_LOGIN_EMAIL, email);
+                        intent.putExtra(EXTRA_LOGIN_ID, id);
+
                         startActivity(intent);
-                        Toast.makeText(RegisterActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RegisterActivity.this, "Registration was successful", Toast.LENGTH_SHORT).show();
                         mProgressBar.setVisibility(View.INVISIBLE);
                     }
                 }, new Response.ErrorListener() {
@@ -61,7 +79,7 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 mProgressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(RegisterActivity.this, "fuuuck", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, "Some field were incorrect filled", Toast.LENGTH_SHORT).show();
             }
         });
         mRequestQueue.add(jsonObjReq);

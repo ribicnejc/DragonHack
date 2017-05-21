@@ -1,32 +1,34 @@
 package com.ribic.nejc.dragonhack.ui;
 
-import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -36,21 +38,33 @@ import com.ribic.nejc.dragonhack.objects.Item;
 import com.ribic.nejc.dragonhack.utils.NetworkUtils;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.ribic.nejc.dragonhack.ui.LoginActivity.EXTRA_LOGIN_EMAIL;
+import static com.ribic.nejc.dragonhack.ui.LoginActivity.EXTRA_LOGIN_ID;
+import static com.ribic.nejc.dragonhack.ui.LoginActivity.EXTRA_LOGIN_NAME;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-    ListAdapter.MainAdapterOnClickHandler{
+        ListAdapter.MainAdapterOnClickHandler {
+
+    public String mName;
+    public String mEmail;
+    public String mId;
 
     public RecyclerView mRecyclerView;
     public ListAdapter mAdapter;
     public GridLayoutManager layoutManager;
     public TextView mTextViewName;
     public TextView mTextViewEmail;
+    public ArrayList<Item> mItems;
+    public FloatingActionButton fab;
+    public boolean order = false;
+    public String orderId = "1";
 
 
     @Override
@@ -62,21 +76,40 @@ public class MainActivity extends AppCompatActivity
 
         mTextViewName = (TextView) findViewById(R.id.text_view_name);
         mTextViewEmail = (TextView) findViewById(R.id.text_view_email);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showSearch();
+            }
+        });
 
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_list);
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             layoutManager = new GridLayoutManager(this, 2);
-        }else
+        } else
             layoutManager = new GridLayoutManager(this, 1);
 
         mRecyclerView.setLayoutManager(layoutManager);
-
-
         handleResponse();
-
         mRecyclerView.setHasFixedSize(true);
 
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                Toast.makeText(MainActivity.this, "swiped", Toast.LENGTH_SHORT).show();//Remove swiped item from list and notify the RecyclerView
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        if (order)
+            itemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -93,11 +126,16 @@ public class MainActivity extends AppCompatActivity
 
 
         Intent intent = getIntent();
-        if (intent.hasExtra(LoginActivity.EXTRA_LOGIN_EMAIL)){
-            mTextViewEmail.setText(intent.getStringExtra(LoginActivity.EXTRA_LOGIN_EMAIL));
+        if (intent.hasExtra(EXTRA_LOGIN_EMAIL)) {
+            mEmail = intent.getStringExtra(EXTRA_LOGIN_EMAIL);
+            mTextViewEmail.setText(mEmail);
         }
-        if(intent.hasExtra(LoginActivity.EXTRA_LOGIN_NAME)){
-            mTextViewName.setText(intent.getStringExtra(LoginActivity.EXTRA_LOGIN_NAME));
+        if (intent.hasExtra(EXTRA_LOGIN_NAME)) {
+            mName = intent.getStringExtra(EXTRA_LOGIN_NAME);
+            mTextViewName.setText(mName);
+        }
+        if (intent.hasExtra(EXTRA_LOGIN_ID)) {
+            mId = intent.getStringExtra(EXTRA_LOGIN_ID);
         }
 
         navigationView.setNavigationItemSelectedListener(this);
@@ -113,7 +151,41 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void handleResponse(){
+    public void showSearch() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Title");
+        final EditText input = new EditText(this);
+        input.setHint("Lorem ipsum");
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                handleSearchResponse(input.getText().toString());
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+
+    public void handleSearchResponse(String search) {
+        ArrayList<Item> tmp = new ArrayList<>();
+        for (Item item : mItems){
+            if (item.name.contains(search)) tmp.add(item);
+        }
+        mAdapter = new ListAdapter(tmp, MainActivity.this);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public void handleResponse() {
         RequestQueue mRequestQueue = Volley.newRequestQueue(getApplicationContext());
         String url = NetworkUtils.items();
         JsonArrayRequest req = new JsonArrayRequest(url,
@@ -124,16 +196,18 @@ public class MainActivity extends AppCompatActivity
                         try {
                             for (int i = 0; i < response.length(); i++) {
                                 JSONObject jsonObject = response.getJSONObject(i);
+                                String id = jsonObject.getInt("id") + "";
                                 String name = jsonObject.getString("name");
-                                String price = jsonObject.getString("price_formated");
+                                String price = jsonObject.getString("price_formatted");
                                 String desc = jsonObject.getString("description");
-                                Item item = new Item(name, price, desc, "je");
+                                Item item = new Item(id, name, price, desc, "je");
                                 items.add(item);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
                             Log.v("ERR:", "problem appeared when parsing JSON");
                         }
+                        mItems = items;
                         mAdapter = new ListAdapter(items, MainActivity.this);
                         mRecyclerView.setAdapter(mAdapter);
                         Log.v("SUC:", "result get from internet");
@@ -148,6 +222,77 @@ public class MainActivity extends AppCompatActivity
         });
 
         mRequestQueue.add(req);
+    }
+
+    public void handleOrderList(String id) {
+        final RequestQueue mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+        String url = NetworkUtils.orderList(id);
+        mItems = new ArrayList<>();
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
+                url, null,
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try{
+                            orderId = response.getString("order_id");
+                            JSONArray array = response.getJSONArray("items");
+                            for(int i = 0; i < array.length(); i++){
+                                JSONObject jsonObject = array.getJSONObject(i);
+                                String id = jsonObject.getInt("id") + "";
+                                String name = jsonObject.getString("name");
+                                String price = jsonObject.getString("price_formatted");
+                                String desc = jsonObject.getString("description");
+                                Item item = new Item(id, name, price, desc, "je");
+                                mItems.add(item);
+                            }
+                            mAdapter = new ListAdapter(mItems, MainActivity.this);
+                            mRecyclerView.setAdapter(mAdapter);
+                        }catch (Exception e){
+
+                        }
+                        Toast.makeText(MainActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        mRequestQueue.add(jsonObjReq);
+    }
+
+    public void addItem(int position) {
+        final String url = "http://dragonhack.zigastrgar.com/api/orders/" + orderId + "/items";
+        final JSONObject jobj = new JSONObject();
+        try {
+            jobj.put("user_id", mId);
+            jobj.put("item_id", mItems.get(position).id);
+        } catch (Exception e) {
+
+        }
+        RequestQueue mRequestQueue = Volley.newRequestQueue(getApplicationContext());
+        final JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jobj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Toast.makeText(getApplicationContext(), "Item added to order!", Toast.LENGTH_LONG).show();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Error!", Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> pars = new HashMap<String, String>();
+                pars.put("Content-Type", "application/x-www-form-urlencoded");
+                return pars;
+            }
+        };
+
+        mRequestQueue.add(jor);
     }
 
     @Override
@@ -179,15 +324,21 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_list) {
-            // Handle the camera action
+            handleResponse();
+            order = false;
         } else if (id == R.id.nav_food) {
 
         } else if (id == R.id.nav_favorites) {
 
         } else if (id == R.id.nav_orders) {
-
+            handleOrderList(mId);
+            order = true;
         } else if (id == R.id.nav_logout) {
-
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.nav_finish){
+            Intent intent = new Intent(MainActivity.this, FinishActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -196,7 +347,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void partyOnClick(int clickedItemIndex) {
+    public void partyOnClick(final int clickedItemIndex) {
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create(); //Read Update
+        alertDialog.setTitle(mItems.get(clickedItemIndex).name);
+        alertDialog.setMessage(mItems.get(clickedItemIndex).description);
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Add to order", new DialogInterface.OnClickListener() {
+
+            public void onClick(DialogInterface dialog, int id) {
+                addItem(clickedItemIndex);
+            }
+        });
+
+        alertDialog.show();
+
         Toast.makeText(this, "works!", Toast.LENGTH_SHORT).show();
     }
 }

@@ -40,11 +40,11 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_weight="1"
+            android:visibility="gone"
             android:src="@drawable/icon_unfavoritable" />
 
 
     </LinearLayout>
 
-    <!--TODO maybe add button-->
 
 </android.support.v7.widget.CardView>

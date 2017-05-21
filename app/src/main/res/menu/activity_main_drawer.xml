@@ -4,24 +4,30 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_list"
-            android:icon="@drawable/icon_list"
+            android:icon="@drawable/icon_orders"
             android:title="@string/nav_list" />
         <item
             android:id="@+id/nav_food"
+            android:visible="false"
             android:icon="@drawable/icon_food"
             android:title="@string/nav_food" />
         <item
+            android:visible="false"
             android:id="@+id/nav_favorites"
             android:icon="@drawable/icon_favorites"
             android:title="@string/nav_favorites" />
         <item
             android:id="@+id/nav_orders"
-            android:icon="@drawable/icon_orders"
+            android:icon="@drawable/icon_list"
             android:title="@string/nav_orders" />
     </group>
 
     <item android:title="@string/nav_title_session">
         <menu>
+            <item
+                android:id="@+id/nav_finish"
+                android:icon="@drawable/icon_favorites"
+                android:title="Finish order"/>
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/icon_logout"

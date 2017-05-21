@@ -17,6 +17,10 @@ public class NetworkUtils {
         return urlTxt;
     }
 
+    public static String orderList(String id){
+        return "http://dragonhack.zigastrgar.com/api/orders?user_id=" + id;
+    }
+
 
 }
 

@@ -5,12 +5,14 @@ package com.ribic.nejc.dragonhack.objects;
  */
 
 public class Item {
+    public String id;
     public String name;
     public String price;
     public String description;
     public String favoritable;
 
-    public Item(String name, String price, String description, String favoritable){
+    public Item(String id, String name, String price, String description, String favoritable){
+        this.id = id;
         this.name = name;
         this.price = price;
         this.description = description;
