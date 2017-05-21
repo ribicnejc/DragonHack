@@ -63,8 +63,7 @@ public class MainActivity extends AppCompatActivity
     public TextView mTextViewEmail;
     public ArrayList<Item> mItems;
     public FloatingActionButton fab;
-    public boolean order = false;
-    public String orderId = "1";
+    public String orderId = "";
 
 
     @Override
@@ -95,21 +94,6 @@ public class MainActivity extends AppCompatActivity
         handleResponse();
         mRecyclerView.setHasFixedSize(true);
 
-        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                Toast.makeText(MainActivity.this, "swiped", Toast.LENGTH_SHORT).show();//Remove swiped item from list and notify the RecyclerView
-            }
-        };
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
-        if (order)
-            itemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -138,6 +122,9 @@ public class MainActivity extends AppCompatActivity
             mId = intent.getStringExtra(EXTRA_LOGIN_ID);
         }
 
+        if (orderId.equals("")){
+            handleOrderList(mId);
+        }
         navigationView.setNavigationItemSelectedListener(this);
     }
 
@@ -153,16 +140,20 @@ public class MainActivity extends AppCompatActivity
 
     public void showSearch() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Title");
+        builder.setTitle("Find items");
         final EditText input = new EditText(this);
-        input.setHint("Lorem ipsum");
+        input.setHint("Example");
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
-
         builder.setPositiveButton("Search", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                handleSearchResponse(input.getText().toString());
+                String query = input.getText().toString();
+                if (!query.equals("")) {
+                    handleSearchResponse(query);
+                }else{
+                    input.setError("Please enter some query");
+                }
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -171,14 +162,13 @@ public class MainActivity extends AppCompatActivity
                 dialog.cancel();
             }
         });
-
         builder.show();
     }
 
 
     public void handleSearchResponse(String search) {
         ArrayList<Item> tmp = new ArrayList<>();
-        for (Item item : mItems){
+        for (Item item : mItems) {
             if (item.name.contains(search)) tmp.add(item);
         }
         mAdapter = new ListAdapter(tmp, MainActivity.this);
@@ -234,10 +224,10 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        try{
+                        try {
                             orderId = response.getString("order_id");
                             JSONArray array = response.getJSONArray("items");
-                            for(int i = 0; i < array.length(); i++){
+                            for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonObject = array.getJSONObject(i);
                                 String id = jsonObject.getInt("id") + "";
                                 String name = jsonObject.getString("name");
@@ -248,30 +238,25 @@ public class MainActivity extends AppCompatActivity
                             }
                             mAdapter = new ListAdapter(mItems, MainActivity.this);
                             mRecyclerView.setAdapter(mAdapter);
-                        }catch (Exception e){
-
-                        }
-                        Toast.makeText(MainActivity.this, response.toString(), Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {}
                     }
                 }, new Response.ErrorListener() {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, error.getLocalizedMessage() + " Internet connection is poor", Toast.LENGTH_SHORT).show();
             }
         });
         mRequestQueue.add(jsonObjReq);
     }
 
     public void addItem(int position) {
-        final String url = "http://dragonhack.zigastrgar.com/api/orders/" + orderId + "/items";
+        final String url = "http://dragonhack.zigastrgar.com/api/orders/" + orderId + "/items?item_id=" + mItems.get(position).id;
         final JSONObject jobj = new JSONObject();
         try {
             jobj.put("user_id", mId);
             jobj.put("item_id", mItems.get(position).id);
-        } catch (Exception e) {
-
-        }
+        } catch (Exception e) {}
         RequestQueue mRequestQueue = Volley.newRequestQueue(getApplicationContext());
         final JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jobj, new Response.Listener<JSONObject>() {
             @Override
@@ -320,24 +305,43 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
+
         int id = item.getItemId();
 
         if (id == R.id.nav_list) {
+            setTitle("All items");
             handleResponse();
-            order = false;
+
         } else if (id == R.id.nav_food) {
 
         } else if (id == R.id.nav_favorites) {
 
         } else if (id == R.id.nav_orders) {
+            setTitle("Order list");
             handleOrderList(mId);
-            order = true;
+            ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                    Toast.makeText(MainActivity.this, "removed item", Toast.LENGTH_SHORT).show();//Remove swiped item from list and notify the RecyclerView
+                    mAdapter.notifyDataSetChanged();
+                }
+            };
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+            itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
         } else if (id == R.id.nav_logout) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_finish){
+        } else if (id == R.id.nav_finish) {
             Intent intent = new Intent(MainActivity.this, FinishActivity.class);
+            intent.putExtra(LoginActivity.EXTRA_LOGIN_ID, mId);
+            intent.putExtra(LoginActivity.EXTRA_LOGIN_NAME, mName);
+            intent.putExtra(LoginActivity.EXTRA_LOGIN_EMAIL, mEmail);
             startActivity(intent);
         }
 
@@ -359,7 +363,16 @@ public class MainActivity extends AppCompatActivity
         });
 
         alertDialog.show();
+    }
 
-        Toast.makeText(this, "works!", Toast.LENGTH_SHORT).show();
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1){
+            if (resultCode == RESULT_OK){
+                mId = data.getStringExtra(LoginActivity.EXTRA_LOGIN_ID);
+            }
+        }
     }
 }

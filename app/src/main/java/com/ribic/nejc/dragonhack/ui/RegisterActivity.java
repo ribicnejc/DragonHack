@@ -79,7 +79,10 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 mProgressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(RegisterActivity.this, "Some field were incorrect filled", Toast.LENGTH_SHORT).show();
+                mEditTextRegisterEmail.setError("Check email");
+                mEditTextRegisterName.setError("Check name");
+                mEditTextRegisterSurname.setError("Check surname");
+                mEditTextRegisterPassword.setError("Check password");
             }
         });
         mRequestQueue.add(jsonObjReq);

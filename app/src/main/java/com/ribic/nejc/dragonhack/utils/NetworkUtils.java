@@ -21,6 +21,5 @@ public class NetworkUtils {
         return "http://dragonhack.zigastrgar.com/api/orders?user_id=" + id;
     }
 
-
 }
 

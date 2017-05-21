@@ -24,7 +24,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final String EXTRA_LOGIN_EMAIL = "com.nejc.ribic.login_email";
     public static final String EXTRA_LOGIN_NAME = "com.nejc.ribic.login_name";
-    public static final String EXTRA_LOGIN_ID = "com.nejc.ribic.login_name";
+    public static final String EXTRA_LOGIN_ID = "com.nejc.ribic.login_id";
 
 
     EditText mEditTextLoginEmail;
@@ -56,11 +56,11 @@ public class LoginActivity extends AppCompatActivity {
                         String name = "";
                         String email = "";
                         String id = "";
-                        try{
+                        try {
                             name = response.getString("name");
                             email = response.getString("email");
                             id = response.getInt("id") + "";
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -68,7 +68,6 @@ public class LoginActivity extends AppCompatActivity {
                         intent.putExtra(EXTRA_LOGIN_EMAIL, email);
                         intent.putExtra(EXTRA_LOGIN_ID, id);
                         startActivity(intent);
-                        Toast.makeText(LoginActivity.this, "Login was successful", Toast.LENGTH_SHORT).show();
                         mProgressBar.setVisibility(View.INVISIBLE);
                     }
                 }, new Response.ErrorListener() {
@@ -76,7 +75,8 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onErrorResponse(VolleyError error) {
                 mProgressBar.setVisibility(View.INVISIBLE);
-                Toast.makeText(LoginActivity.this, "Some field were wrong filled!", Toast.LENGTH_SHORT).show();
+                mEditTextLoginEmail.setError("Check input");
+                mEditTextLoginPassword.setError("Check password");
             }
         });
         mRequestQueue.add(jsonObjReq);
